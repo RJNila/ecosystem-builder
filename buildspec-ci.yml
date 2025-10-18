@@ -1,0 +1,18 @@
+version: 0.2
+phases:
+  install:
+    commands:
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+      - pip install pytest ruff mypy
+  pre_build:
+    commands:
+      - ruff check . # ruff = fast Python linter & formatter helper (finds bugs like unused imports, undefined names, etc.).
+      - mypy .       # mypy = static type checker (catches type mistakes before runtime).
+      - pytest -q    # pytest = runs your tests; -q = “quiet” (cleaner CI output).
+  build:
+    commands:
+      - echo "No artifact build in PR CI"
+  post_build:
+    commands:
+      - echo "PR CI passed"

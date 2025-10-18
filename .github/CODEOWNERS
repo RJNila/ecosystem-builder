@@ -1,0 +1,23 @@
+# --- Default: if nothing else matches, require backend-leads (lead-only) ---
+*                                   @RJNila/backend-leads
+
+# --- App / API / domain code (lead-only) ---
+app/**                              @RJNila/backend-leads
+api/**                              @RJNila/backend-leads
+services/**                         @RJNila/backend-leads
+dtos/**                             @RJNila/backend-leads
+db/**                               @RJNila/backend-leads
+tests/**                            @RJNila/backend-leads
+
+# --- CI/CD and DevOps-owned bits (lead-only for DevOps) ---
+.github/workflows/**                @RJNila/devops-leads
+buildspec*.yml                      @RJNila/devops-leads
+Dockerfile                          @RJNila/devops-leads
+k8/**                               @RJNila/devops-leads
+helm/**                             @RJNila/devops-leads
+infra/**                            @RJNila/devops-leads
+terraform/**                        @RJNila/devops-leads
+
+# --- Optional: production env config requires platform managers too ---
+env-config-prod/**                  @RJNila/platform
+k8/prod/**                          @RJNila/platform

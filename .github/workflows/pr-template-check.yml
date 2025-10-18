@@ -1,0 +1,22 @@
+name: PR template check
+on:
+  pull_request:
+    types: [opened, edited, synchronize, ready_for_review]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.pull_request.body || "").trim();
+            const required = ["## What", "## Why", "## How", "## Tests", "## Ops / Release"];
+            const missing = required.filter(h => !body.includes(h));
+            if (missing.length) core.setFailed(`Missing sections: ${missing.join(", ")}`);
+            const stripped = body.replace(/\r/g, "");
+            const hasWhat = /## What\s+[-\w]/.test(stripped);
+            const hasWhy  = /## Why\s+[-\w]/.test(stripped);
+            if (!hasWhat || !hasWhy) core.setFailed("Please add content under 'What' and 'Why'.");
+            if (!/\- \[x\]/i.test(body)) core.setFailed("Tick at least one checklist item (use [x]).");
