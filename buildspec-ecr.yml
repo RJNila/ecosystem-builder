@@ -22,8 +22,6 @@ phases:
         echo "AWS CLI:"; aws --version || true
         echo "Docker:"; docker --version || true
 
-        # Show caller identity to confirm the role/creds in use
-        echo "Caller identity:"; aws sts get-caller-identity || true
 
         # Attempt to get ECR password into a temp file (don't print the secret)
         if ! aws ecr get-login-password --region "$AWS_REGION" > /tmp/ecr_pw 2>/tmp/ecr_pw_err; then
