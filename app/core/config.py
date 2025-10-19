@@ -2,7 +2,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_env: str = "local"
-    database_url: str
+    # default empty string so Settings() can be instantiated in environments
+    # where the env var isn't provided (mypy needs a default for call-site checks)
+    database_url: str = ""
     db_schema: str = "public"
     log_level: str = "info"
     port: int = 8000
