@@ -1,0 +1,21 @@
+# Ignore Python and VCS files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+env/
+.venv/
+
+# Ignore Docker and git metadata
+.git
+.github
+.cache
+
+# Ignore CI artifacts
+image.json
+
+# Node and Python build artifacts
+node_modules/
+dist/
+build/

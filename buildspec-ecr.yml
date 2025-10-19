@@ -17,8 +17,32 @@ phases:
       - echo "Logging into ECR..."
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-      - aws ecr get-login-password --region $AWS_REGION \
-          | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - |
+        # Debug: versions
+        echo "AWS CLI:"; aws --version || true
+        echo "Docker:"; docker --version || true
+
+
+        # Attempt to get ECR password into a temp file (don't print the secret)
+        if ! aws ecr get-login-password --region "$AWS_REGION" > /tmp/ecr_pw 2>/tmp/ecr_pw_err; then
+          echo "ERROR: aws ecr get-login-password failed; contents of error file:"; cat /tmp/ecr_pw_err || true
+          exit 1
+        fi
+        echo "ECR password length (bytes):" $(wc -c < /tmp/ecr_pw)
+
+        # Attempt docker login using the password file
+        if ! cat /tmp/ecr_pw | docker login --username AWS --password-stdin "$ECR_REGISTRY" > /tmp/docker_login_out 2>&1; then
+          echo "ERROR: docker login failed; output:"; cat /tmp/docker_login_out || true
+          exit 1
+        fi
+        echo "docker login succeeded:"; cat /tmp/docker_login_out || true
+
+        # Ensure the ECR repository exists (create if missing)
+        if ! aws ecr describe-repositories --repository-names "$ECR_REPO_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
+          echo "ECR repository $ECR_REPO_NAME not found, attempting to create it..."
+          aws ecr create-repository --repository-name "$ECR_REPO_NAME" --region "$AWS_REGION" || true
+        fi
+
       - IMAGE_URI=$ECR_REGISTRY/$ECR_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo "IMAGE_URI=$IMAGE_URI"
       - if [ -d tests ]; then python -m pytest -q || true; else echo "No tests yet"; fi
