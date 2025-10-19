@@ -1,0 +1,39 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: eu-west-1                  # Region for ECR & AWS CLI calls
+    ECR_REPO_NAME: ecosystem-builder       # Your ECR repo name
+    PYTHONUNBUFFERED: "1"                  # Nicer Python logs in CI
+
+phases:
+  install:                                 # 1) Prepare tools for optional tests
+    commands:
+      - pip install --no-cache-dir -r requirements.txt || true
+      - pip install pytest || true
+
+  pre_build:                               # 2) Login to ECR + decide image tag + (optional) tests
+    commands:
+      - echo "Logging into ECR..."
+      - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+      - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+      - aws ecr get-login-password --region $AWS_REGION \
+          | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - IMAGE_URI=$ECR_REGISTRY/$ECR_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - echo "IMAGE_URI=$IMAGE_URI"
+      - if [ -d tests ]; then python -m pytest -q || true; else echo "No tests yet"; fi
+
+  build:                                   # 3) Build the Docker image from your Dockerfile
+    commands:
+      - echo "Building Docker image..."
+      - docker build -t $IMAGE_URI .
+
+  post_build:                              # 4) Push the image & publish its URI for downstream steps
+    commands:
+      - echo "Pushing image..."
+      - docker push $IMAGE_URI
+      - printf '{"image":"%s"}' "$IMAGE_URI" > image.json
+
+artifacts:                                 # 5) Hand an artifact to the next stage (optional)
+  files:
+    - image.json
