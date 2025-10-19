@@ -18,12 +18,28 @@ phases:
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
       - |
+        # Debug helpers: show aws and docker versions (no secrets printed)
+        aws --version || true
+        docker --version || true
+
         # Use AWS CLI v2 preferred command if available, otherwise fall back to v1 behavior.
         if aws ecr get-login-password --region "$AWS_REGION" >/dev/null 2>&1; then
-          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+          if ! aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"; then
+            echo "ERROR: docker login to ECR failed (aws ecr get-login-password returned non-zero or docker login failed)"
+            exit 1
+          fi
         else
           # Older AWS CLI (v1) provides `get-login`. Evaluate the returned docker login command.
-          eval "$(aws ecr get-login --no-include-email --region \"$AWS_REGION\")"
+          if ! eval "$(aws ecr get-login --no-include-email --region \"$AWS_REGION\")"; then
+            echo "ERROR: aws ecr get-login fallback failed"
+            exit 1
+          fi
+        fi
+
+        # Ensure the ECR repository exists before pushing (helpful for fresh accounts/repos)
+        if ! aws ecr describe-repositories --repository-names "$ECR_REPO_NAME" --region "$AWS_REGION" >/dev/null 2>&1; then
+          echo "ECR repository $ECR_REPO_NAME not found, attempting to create it..."
+          aws ecr create-repository --repository-name "$ECR_REPO_NAME" --region "$AWS_REGION" || true
         fi
       - IMAGE_URI=$ECR_REGISTRY/$ECR_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo "IMAGE_URI=$IMAGE_URI"
