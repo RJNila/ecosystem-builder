@@ -1,0 +1,65 @@
+# --- Python bytecode / caches ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Build / packaging ---
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+
+# --- Virtual environments ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Tool caches & test artifacts ---
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# --- Type checkers / linters ---
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# --- Logs & local data ---
+*.log
+logs/
+*.sqlite3
+
+# --- Jupyter ---
+.ipynb_checkpoints/
+
+# --- OS / Editor junk ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.iml
+
+# --- Environment files (keep examples only) ---
+.env
+.env.*
+.env.local
+.envrc
+!.env.example
+!.env.sample
+!.env.local.example
+
+# --- Docker (keep base files; ignore local overrides) ---
+docker-compose.override.yml
+
+# --- Kubernetes local overrides / secrets (don’t commit real secrets) ---
+k8/**/values.local.yaml
+k8/**/secrets*.yaml
+
+# --- Node leftovers (in case a frontend sneaks in) ---
+node_modules/
