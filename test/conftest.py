@@ -1,11 +1,9 @@
 import asyncio
-import os
 import sys
 from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
 
 # Ensure repo root is on sys.path so `app` package imports resolve when running pytest
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,7 +13,7 @@ if str(ROOT) not in sys.path:
 # Do NOT import `app` or `app.db.database` at module import time. Tests need to set
 # `config.settings.database_url` before those modules create engines. Import `config`
 # only to access settings and then import the app/database inside fixtures after override.
-from app.core import config
+from app.core import config  # noqa: E402
 
 
 @pytest.fixture(scope="session")

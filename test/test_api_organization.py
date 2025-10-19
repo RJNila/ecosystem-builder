@@ -1,6 +1,3 @@
-import pytest
-
-
 def test_create_organization_success(client):
     payload = {"name": "ACME Inc", "code": "ACME", "description": "Test"}
     r = client.post("/api/v1/organizations", json=payload)
