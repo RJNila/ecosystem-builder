@@ -1,7 +1,8 @@
 # Minimal Dockerfile for the ecosystem-builder project
 # Uses a slim Python base, installs dependencies, and runs the app module
 
-FROM python:3.11-slim
+# Use the AWS Public ECR mirror of the official Python image to avoid Docker Hub rate limits
+FROM public.ecr.aws/docker/library/python:3.11-slim
 
 # Set a stable working directory
 WORKDIR /app
