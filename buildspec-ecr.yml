@@ -17,8 +17,14 @@ phases:
       - echo "Logging into ECR..."
       - ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
       - ECR_REGISTRY=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
-      - aws ecr get-login-password --region $AWS_REGION \
-          | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - |
+        # Use AWS CLI v2 preferred command if available, otherwise fall back to v1 behavior.
+        if aws ecr get-login-password --region "$AWS_REGION" >/dev/null 2>&1; then
+          aws ecr get-login-password --region "$AWS_REGION" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+        else
+          # Older AWS CLI (v1) provides `get-login`. Evaluate the returned docker login command.
+          eval "$(aws ecr get-login --no-include-email --region \"$AWS_REGION\")"
+        fi
       - IMAGE_URI=$ECR_REGISTRY/$ECR_REPO_NAME:$CODEBUILD_RESOLVED_SOURCE_VERSION
       - echo "IMAGE_URI=$IMAGE_URI"
       - if [ -d tests ]; then python -m pytest -q || true; else echo "No tests yet"; fi
